@@ -19,9 +19,8 @@ const alterFile = async file => {
   catch(error){
     eventHub.emit('error', error);
   } 
+  console.log('transformed file');
+  eventHub.emit('disconnect');
 };
-
-
-
 
 module.exports = alterFile; 
