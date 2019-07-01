@@ -1,36 +1,39 @@
 'use strict';
 
-const net = require('net');
-const uuid = require('uuid');
 const eventHub = require('./eventHub');
 
-const port = process.env.PORT || 3001;
-const server = net.createServer();
+const ioFactory = require('socket.io');
+const io = ioFactory(3000);
 
-server.listen(port, () => console.log(`Server up on ${port}`) );
+io.on('connection', socket => {
+  console.log('This socket has connected:', socket.id);
 
-let socketPool = {};
-
-server.on('connection', (socket) => {
-  
-  const id = `Socket-${uuid()}`;
-  socketPool[id] = socket;
-
-  socket.on('data', dispatchEvent);
-
-  socket.on('close', () => {
-    delete socketPool[id]; 
+  socket.on('something', payload => {
+    console.log('', payload);
+    socket.broadcast.emit('something', payload);
   });
 
-  socket.on('error', (err) => {
-    console.error(id, err);
+  socket.on('save', payload => {
+    console.log('A save has happened',  payload);
+    socket.broadcast.emit('save', payload);
+  });
+
+  socket.on('error', payload => {
+    console.log('Some sort of error occoured with:', payload);
+    socket.broadcast.emit('error', payload);
   });
 
 });
 
-let dispatchEvent = (buffer) => {
-  let text = buffer.toString().trim();
-  for (let socket in socketPool) {
-    socketPool[socket].write(`${text}\r\n`);
-  }
-};
+
+
+
+
+// let dispatchEvent = (buffer) => {
+//   let text = buffer.toString().trim();
+//   for (let socket in socketPool) {                       <---- not sure if i still need this?
+//     socketPool[socket].write(`${text}\r\n`);
+//   }
+// };
+
+
